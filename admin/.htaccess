@@ -1,0 +1,6 @@
+Options -Indexes
+
+# Prevent direct access to uploads listing
+<IfModule mod_autoindex.c>
+  Options -Indexes
+</IfModule>

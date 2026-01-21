@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Confirmation - Chronos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar scrolled">
+    <div class="container">
+      <div class="row w-100 align-items-center">
+        <div class="col-6">
+          <a href="index.html" class="navbar-brand">
+            <img src="assets/logo.png.png" alt="CHRONOS">
+          </a>
+        </div>
+        <div class="col-6 text-end">
+          <a href="index.html" class="text-white">← Back to Home</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="py-5" style="min-height: 100vh; padding-top: 150px !important; background: #0F1419; color: white;">
+    <div class="container">
+      <div class="text-center mb-5">
+        <h1 class="mb-2">Order Confirmed</h1>
+        <p class="text-white-50 mb-0">Thank you for your purchase. Your order has been placed with Cash on Delivery.</p>
+      </div>
+
+      <div class="row justify-content-center">
+        <div class="col-12 col-lg-8">
+          <div class="card p-4" style="background:#111826;border:1px solid rgba(255,255,255,.08)">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-3">
+              <div>
+                <div class="text-white-50 small">Order ID</div>
+                <div class="h4 mb-0 text-gold" id="orderUid">-</div>
+              </div>
+              <div class="text-end">
+                <div class="text-white-50 small">Total</div>
+                <div class="h4 mb-0">Rs. <span id="orderTotal">0</span></div>
+              </div>
+            </div>
+
+            <hr style="border-color:rgba(255,255,255,.12)">
+            <div class="text-white-50 mb-2">Items</div>
+            <div id="orderItems" class="d-flex flex-column gap-2"></div>
+
+            <hr style="border-color:rgba(255,255,255,.12)">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+              <div class="text-white-50">Status: <span id="orderStatus" class="text-white">pending</span></div>
+              <a href="collection.html" class="btn-luxury px-4 py-3">Continue Shopping</a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const order_uid = params.get('order_uid');
+
+    if(!order_uid){
+      document.getElementById('orderItems').innerHTML = '<p class="text-white-50">Missing order id.</p>';
+    } else {
+      fetch('api/order.php?order_uid=' + encodeURIComponent(order_uid))
+        .then(r=>r.json())
+        .then(res=>{
+          if(!res.success){
+            document.getElementById('orderItems').innerHTML = '<p class="text-white-50">Order not found.</p>';
+            return;
+          }
+          const o = res.data.order;
+          document.getElementById('orderUid').textContent = o.order_uid;
+          document.getElementById('orderTotal').textContent = Number(o.total_amount||0).toLocaleString();
+          document.getElementById('orderStatus').textContent = o.status;
+          const items = res.data.items || [];
+          document.getElementById('orderItems').innerHTML = items.map(it=>`
+            <div class="d-flex justify-content-between">
+              <div>${it.name} <span class="text-white-50 small">x${it.quantity}</span></div>
+              <div>Rs. ${(Number(it.price_at_purchase||0)*Number(it.quantity||1)).toLocaleString()}</div>
+            </div>
+          `).join('');
+        })
+        .catch(()=>{
+          document.getElementById('orderItems').innerHTML = '<p class="text-white-50">Failed to load order.</p>';
+        });
+    }
+  </script>
+</body>
+</html>

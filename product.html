@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Product Details - Chronos</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <nav class="navbar scrolled">
+    <div class="container">
+      <div class="row w-100 align-items-center">
+        <div class="col-6">
+          <a href="index.html" class="navbar-brand">
+            <img src="assets/logo.png.png" alt="CHRONOS">
+          </a>
+        </div>
+        <div class="col-6 text-end">
+          <a href="collection.html" class="text-white">← Back to Collection</a>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <main class="py-5" style="min-height: 100vh; padding-top: 150px !important; background: #0F1419; color: white;">
+    <div class="container">
+      <div id="productDetails" class="row">
+        <div class="col-md-6 mb-4">
+          <img id="productImage" src="" alt="Product" class="img-fluid rounded">
+        </div>
+        <div class="col-md-6">
+          <h1 id="productBrand" class="text-gold mb-2"></h1>
+          <h2 id="productModel" class="mb-4"></h2>
+          <p class="h3 mb-4">Rs. <span id="productPrice"></span></p>
+          
+          <div class="mb-4">
+            <h5>Specifications:</h5>
+            <ul>
+              <li>Strap Type: <span id="strapType"></span></li>
+              <li>Dial Color: <span id="dialColor"></span></li>
+              <li>Water Resistant: <span id="waterResistant"></span></li>
+              <li>Gender: <span id="gender"></span></li>
+              <li>Stock: <span id="stock"></span></li>
+            </ul>
+          </div>
+          
+          <button id="addToCartBtn" class="btn-luxury px-4 py-3">Add to Cart</button>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="js/app.js"></script>
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id');
+
+    async function load(){
+      try{
+        const r = await fetch('api/product.php?id=' + encodeURIComponent(productId));
+        const res = await r.json();
+        if(!res.success){
+          document.getElementById('productDetails').innerHTML = '<p class="text-center">Product not found</p>';
+          return;
+        }
+        const product = res.data;
+        const img = (product.images && product.images.length) ? product.images[0] : product.image;
+        document.getElementById('productImage').src = img || '';
+        document.getElementById('productBrand').textContent = product.brand;
+        document.getElementById('productModel').textContent = product.model;
+        document.getElementById('productPrice').textContent = Number(product.price||0).toLocaleString();
+
+        // Specs: map to existing labels as best possible
+        document.getElementById('strapType').textContent = '—';
+        document.getElementById('dialColor').textContent = '—';
+        document.getElementById('waterResistant').textContent = '—';
+        document.getElementById('gender').textContent = product.category || '—';
+        document.getElementById('stock').textContent = (product.stock||0) + ' units';
+
+        document.getElementById('addToCartBtn').addEventListener('click', () => {
+          addToCart({
+            id: product.id,
+            product_id: Number(product.id),
+            name: product.name,
+            model: product.model,
+            brand: product.brand,
+            price: Number(product.price||0),
+            image: img,
+            stock: Number(product.stock||0)
+          });
+        });
+      }catch(e){
+        document.getElementById('productDetails').innerHTML = '<p class="text-center">Product not found</p>';
+      }
+    }
+
+    load();
+  </script>
+</body>
+</html>
